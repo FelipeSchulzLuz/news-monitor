@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model events {
+  uuid        String        @id @db.Uuid
+  cep         String?       @db.VarChar(255)
+  complement  String?       @db.VarChar(255)
+  number      Int?
+  category    Int?          @db.SmallInt
+  date        DateTime?     @db.Timestamp(6)
+  description String?       @db.VarChar(255)
+  type_ticket type_ticket[]
+}
+
+model sales {
+  uuid    String    @id @db.Uuid
+  user_id BigInt?
+  users   users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk5bgaw8g0rrbqdvafq36g58smk")
+  tickets tickets[]
+}
+
+model tickets {
+  id              BigInt       @id @default(autoincrement())
+  code            Int
+  sale_uuid       String?      @db.Uuid
+  ticket_types_id BigInt?
+  sales           sales?       @relation(fields: [sale_uuid], references: [uuid], onDelete: NoAction, onUpdate: NoAction, map: "fk4i4q6p7mkidepeqs8yb45wtqr")
+  type_ticket     type_ticket? @relation(fields: [ticket_types_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk6fesbfansqcu9rya2gw6t8lgc")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model type_ticket {
+  id              BigInt    @id @default(autoincrement())
+  definition      String?   @db.VarChar(255)
+  sector          String?   @db.VarChar(255)
+  total_available Int
+  value           Float?
+  event_uuid      String?   @db.Uuid
+  tickets         tickets[]
+  events          events?   @relation(fields: [event_uuid], references: [uuid], onDelete: NoAction, onUpdate: NoAction, map: "fkqyj5p7tqss385o8w1tdtbjrwi")
+}
+
+model users {
+  id       BigInt    @id @default(autoincrement())
+  birthday DateTime? @db.Date
+  cpf      String?   @db.VarChar(255)
+  email    String?   @db.VarChar(255)
+  name     String?   @db.VarChar(255)
+  sales    sales[]
+}
+
+model Notice {
+  id          Int       @id @default(autoincrement())
+  title       String?
+  url         String    @unique
+  publishedAt DateTime?
+  source      String?
+  keyword     String
+  image       String?
+  description String?
+  content     String?
+
+  @@map("noticias")
+}
